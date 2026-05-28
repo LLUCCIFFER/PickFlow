@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>片刻 — 轻松选片与韩式成片</title>
+<title>PickFlow — 本地智能选片助手</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23cc785c'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="/static/style.css?v=20260528k">
+<link rel="stylesheet" href="/static/style.css?v=20260528p">
 </head>
 <body>
 
@@ -22,15 +22,15 @@
     <header class="site-header">
       <div class="brand">
         <span class="brand-mark"></span>
-        <span class="brand-name">片刻</span>
+        <span class="brand-name">PickFlow</span>
       </div>
       <span class="site-tag">本地运行 · 不上传</span>
     </header>
 
     <main class="landing-main">
-      <p class="eyebrow">本地极速选片 · 韩式氛围导出</p>
-      <h1 class="hero-title">快速留下好照片，<br>再做成<em>网感成片</em>。</h1>
-      <p class="hero-sub">选择照片文件夹后，系统会本地扫描、自动分组、初筛明显废片；完成后可一键加入韩式大头贴边框、贴纸或清透滤镜。</p>
+      <p class="eyebrow">拾万千光影，定格那一帧</p>
+      <h1 class="hero-title">PickFlow——懂摄影，<br>更懂你的<em>本地智能选片助手</em>。</h1>
+      <p class="hero-sub">选择照片文件夹后，系统会在本地完成扫描、分组与初筛；完成后可批量导出专业相机参数水印，也可加入韩式贴纸、复古、水彩、素描、漫画、黑白等滤镜风格。</p>
 
       <form id="start-form" class="start-form" autocomplete="off" action="javascript:void(0)" onsubmit="return false">
         <div class="fast-only-card" aria-label="当前模式">
@@ -155,14 +155,14 @@
         </div>
         <div class="meta-item">
           <div class="meta-num">03</div>
-          <div class="meta-text"><strong>美化</strong><br>韩式贴纸 · 清透滤镜</div>
+          <div class="meta-text"><strong>导出</strong><br>相机水印 · 贴纸滤镜</div>
         </div>
       </div>
     </main>
 
     <footer class="landing-foot">
       <div class="landing-foot-row">
-        <span>操作：选文件夹 → 开始 → 左右选择 → 完成页导出滤镜成片</span>
+        <span>操作：选文件夹 → 开始 → 左右选择 → 完成页批量导出水印或风格成片</span>
         <span>JPG · PNG · HEIC · WEBP · TIFF · RAW</span>
       </div>
     </footer>
@@ -251,7 +251,7 @@
   <header class="preview-header">
     <div class="brand">
       <span class="brand-mark"></span>
-      <span class="brand-tiny">片刻 · 初筛复核</span>
+      <span class="brand-tiny">PickFlow · 初筛复核</span>
     </div>
     <div class="header-actions">
       <button id="btn-prescreen-skip" class="btn-ghost">跳过复核</button>
@@ -313,7 +313,7 @@
   <header class="preview-header">
     <div class="brand">
       <span class="brand-mark"></span>
-      <span class="brand-tiny">片刻 · 分组预览</span>
+      <span class="brand-tiny">PickFlow · 分组预览</span>
     </div>
     <div class="header-actions">
       <button id="btn-preview-back" class="btn-ghost">回到首页</button>
@@ -365,7 +365,7 @@
   <header class="arena-header">
     <div class="arena-h-left">
       <span class="brand-mark sm"></span>
-      <span class="brand-tiny">片刻</span>
+      <span class="brand-tiny">PickFlow</span>
       <span class="dot-sep">·</span>
       <span class="arena-folder" id="arena-folder"></span>
     </div>
@@ -529,11 +529,12 @@
   <header class="done-header">
     <div class="done-h-left">
       <span class="brand-mark sm"></span>
-      <span class="brand-tiny">片刻</span>
+      <span class="brand-tiny">PickFlow</span>
     </div>
     <div class="done-h-right">
       <button id="btn-open-folder" class="btn-ghost">打开文件夹</button>
-      <button id="btn-beautify" class="btn-ghost" title="给胜出照片批量加入韩式贴纸或网感滤镜">韩式大头贴</button>
+      <button id="btn-watermark" class="btn-ghost" title="给胜出照片批量添加专业相机参数水印">相机参数水印</button>
+      <button id="btn-beautify" class="btn-ghost" title="给胜出照片批量加入韩式贴纸或网感滤镜">贴纸 / 滤镜</button>
       <button id="btn-redo-folder" class="btn-ghost" title="清掉本次结果，重新挑这个文件夹">重做本次</button>
       <button class="btn-ghost btn-go-home" title="回到主页">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -604,13 +605,13 @@
     </details>
   </div>
 
-  <!-- ============ 韩式大头贴 / 网感滤镜导出弹窗 ============ -->
+  <!-- ============ 相机参数水印 / 韩式贴纸滤镜导出弹窗 ============ -->
   <div id="wm-modal" class="wm-modal hidden">
     <div class="wm-modal-card">
       <header class="wm-modal-head">
         <div>
-          <h3>韩式大头贴与网感滤镜</h3>
-          <p class="wm-modal-sub" id="wm-sub">为胜出的照片添加柔粉滤镜、相纸边框和贴纸，导出到 winners 子文件夹</p>
+          <h3 id="wm-title">贴纸与滤镜导出</h3>
+          <p class="wm-modal-sub" id="wm-sub">为胜出的照片添加韩式贴纸、相纸边框或网感滤镜，导出到 winners 子文件夹</p>
         </div>
         <button class="wm-close" id="wm-close" aria-label="关闭">×</button>
       </header>
@@ -619,7 +620,7 @@
         <!-- 左侧：配置面板 -->
         <aside class="wm-options">
           <div class="wm-section">
-            <div class="wm-section-title">风格</div>
+            <div class="wm-section-title" id="wm-template-title">风格</div>
             <div class="wm-template-grid" id="wm-template-grid">
               <!-- JS 填充：风格卡片 -->
             </div>
@@ -693,6 +694,6 @@
   </div>
 </div>
 
-<script src="/static/app.js?v=20260528k"></script>
+<script src="/static/app.js?v=20260528p"></script>
 </body>
 </html>

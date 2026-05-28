@@ -11,5 +11,5 @@ opencv-contrib-python>=4.9,<4.11
 # RAW preview extraction and RAW+JPG pairing.
 rawpy>=0.18
 
-# Preserve EXIF orientation when exporting styled copies.
+# Preserve EXIF orientation when exporting styled copies and camera watermarks.
 piexif>=1.1.3

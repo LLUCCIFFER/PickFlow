@@ -15,7 +15,7 @@ APP = ROOT / "app.py"
 
 
 def info(msg: str) -> None:
-    print(f"[片刻] {msg}", flush=True)
+    print(f"[PickFlow] {msg}", flush=True)
 
 
 def venv_python() -> Path:
@@ -38,7 +38,7 @@ def ensure_venv() -> Path:
 
 
 def ensure_deps(py: Path) -> None:
-    mirror = os.environ.get("PIANKE_PIP_INDEX", "https://pypi.tuna.tsinghua.edu.cn/simple")
+    mirror = os.environ.get("PICKFLOW_PIP_INDEX", "https://pypi.tuna.tsinghua.edu.cn/simple")
     info("安装/检查极速模式依赖")
     run([str(py), "-m", "pip", "install", "--upgrade", "pip", "-i", mirror])
     run([str(py), "-m", "pip", "install", "-r", str(REQ), "-i", mirror])

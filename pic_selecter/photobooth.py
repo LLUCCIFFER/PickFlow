@@ -50,6 +50,41 @@ def list_styles() -> list[dict]:
             "name": "莓果贴纸",
             "desc": "莓粉色调 + 星星贴纸 + 甜感边框",
         },
+        {
+            "id": "ribbon_diary",
+            "name": "丝带日记",
+            "desc": "浅奶绿相纸 + 蝴蝶结贴纸 + 轻盈手帐感",
+        },
+        {
+            "id": "aura_sticker",
+            "name": "柔光贴纸",
+            "desc": "淡紫柔光 + 小星星贴纸 + 甜酷社交头像感",
+        },
+        {
+            "id": "retro_film",
+            "name": "复古胶片",
+            "desc": "暖棕胶片色、轻颗粒和暗角，适合日常与旅拍",
+        },
+        {
+            "id": "watercolor",
+            "name": "水彩晕染",
+            "desc": "柔化边缘与浅色晕染，保留照片轮廓",
+        },
+        {
+            "id": "pencil_sketch",
+            "name": "素描线稿",
+            "desc": "铅笔线稿与浅灰纸感，适合氛围头像",
+        },
+        {
+            "id": "comic_pop",
+            "name": "漫画海报",
+            "desc": "高饱和色块 + 黑色描边，适合网感封面",
+        },
+        {
+            "id": "mono_film",
+            "name": "黑白胶片",
+            "desc": "高对比黑白、细颗粒与轻暗角，干净耐看",
+        },
     ]
 
 
@@ -171,6 +206,55 @@ def _filter_berry(img: Image.Image) -> Image.Image:
     return _vignette(_add_grain(img, 0.025), (95, 54, 80), 0.12)
 
 
+def _filter_retro(img: Image.Image) -> Image.Image:
+    img = ImageOps.autocontrast(img, cutoff=1)
+    sepia = ImageOps.colorize(ImageOps.grayscale(img), "#322018", "#f4cf9c")
+    img = Image.blend(img, sepia, 0.36)
+    img = ImageEnhance.Contrast(img).enhance(1.05)
+    img = ImageEnhance.Color(img).enhance(0.88)
+    img = _blend_color(img, (255, 222, 170), 0.08)
+    return _vignette(_add_grain(img, 0.055), (74, 44, 31), 0.22)
+
+
+def _filter_watercolor(img: Image.Image) -> Image.Image:
+    base = ImageEnhance.Color(img).enhance(1.12)
+    base = ImageEnhance.Brightness(base).enhance(1.04)
+    base = base.filter(ImageFilter.SMOOTH_MORE).filter(ImageFilter.GaussianBlur(0.55))
+    paper = _screen(base, (255, 248, 235), 0.16)
+    edges = ImageOps.grayscale(img).filter(ImageFilter.FIND_EDGES)
+    edges = ImageOps.autocontrast(edges).filter(ImageFilter.GaussianBlur(0.7))
+    line = Image.new("RGB", img.size, (118, 96, 86))
+    return Image.composite(line, paper, edges.point(lambda p: int(p * 0.26)))
+
+
+def _filter_sketch(img: Image.Image) -> Image.Image:
+    gray = ImageOps.grayscale(img)
+    paper = ImageOps.colorize(gray, "#f8f3ea", "#34312e")
+    edges = ImageOps.grayscale(img).filter(ImageFilter.FIND_EDGES)
+    edges = ImageOps.autocontrast(edges)
+    ink = Image.new("RGB", img.size, (34, 32, 31))
+    sketch = Image.composite(ink, paper, edges.point(lambda p: 255 if p > 36 else 0))
+    return _blend_color(sketch, (255, 250, 240), 0.08)
+
+
+def _filter_comic(img: Image.Image) -> Image.Image:
+    base = ImageOps.autocontrast(img, cutoff=1)
+    base = ImageOps.posterize(base, 4)
+    base = ImageEnhance.Color(base).enhance(1.34)
+    base = ImageEnhance.Contrast(base).enhance(1.08)
+    edges = ImageOps.grayscale(img).filter(ImageFilter.FIND_EDGES)
+    edges = ImageOps.autocontrast(edges)
+    ink = Image.new("RGB", img.size, (30, 29, 33))
+    return Image.composite(ink, base, edges.point(lambda p: 255 if p > 46 else 0))
+
+
+def _filter_mono(img: Image.Image) -> Image.Image:
+    gray = ImageOps.grayscale(ImageOps.autocontrast(img, cutoff=1))
+    gray = ImageEnhance.Contrast(gray).enhance(1.18)
+    out = ImageOps.colorize(gray, "#111111", "#f5f1e9")
+    return _vignette(_add_grain(out, 0.045), (20, 20, 20), 0.20)
+
+
 def _heart_points(cx: int, cy: int, size: int) -> list[tuple[int, int]]:
     pts = []
     for i in range(0, 360, 10):
@@ -216,6 +300,10 @@ def _add_stickers(canvas: Image.Image, palette: str = "pink") -> Image.Image:
     ink = (108, 75, 91, 230)
     if palette == "berry":
         pink, peach, lilac, ink = (222, 80, 128, 230), (255, 178, 203, 230), (140, 116, 210, 220), (91, 46, 72, 230)
+    elif palette == "mint":
+        pink, peach, lilac, ink = (124, 204, 184, 225), (255, 210, 176, 230), (163, 207, 238, 220), (68, 92, 88, 230)
+    elif palette == "lavender":
+        pink, peach, lilac, ink = (191, 150, 255, 225), (255, 183, 214, 230), (142, 198, 255, 220), (73, 62, 104, 230)
 
     _draw_heart(draw, int(w * 0.09), int(h * 0.14), int(ref * 0.09), pink, (255, 255, 255, 220))
     draw.polygon(_star_points(int(w * 0.90), int(h * 0.16), int(ref * 0.055), int(ref * 0.024)),
@@ -280,11 +368,52 @@ def _render_berry_sticker(img: Image.Image) -> Image.Image:
     return _add_stickers(canvas, "berry")
 
 
+def _render_ribbon_diary(img: Image.Image) -> Image.Image:
+    img = _filter_clean_flash(img)
+    img = _blend_color(img, (238, 255, 246), 0.07)
+    canvas = _frame(img, (249, 255, 249), bottom_ratio=0.14)
+    return _add_stickers(canvas, "mint")
+
+
+def _render_aura_sticker(img: Image.Image) -> Image.Image:
+    img = _filter_milk_peach(img)
+    img = _screen(img, (231, 218, 255), 0.10)
+    canvas = _frame(img, (250, 247, 255), bottom_ratio=0.12)
+    return _add_stickers(canvas, "lavender")
+
+
+def _render_retro_film(img: Image.Image) -> Image.Image:
+    return _filter_retro(img)
+
+
+def _render_watercolor(img: Image.Image) -> Image.Image:
+    return _filter_watercolor(img)
+
+
+def _render_pencil_sketch(img: Image.Image) -> Image.Image:
+    return _filter_sketch(img)
+
+
+def _render_comic_pop(img: Image.Image) -> Image.Image:
+    return _filter_comic(img)
+
+
+def _render_mono_film(img: Image.Image) -> Image.Image:
+    return _filter_mono(img)
+
+
 _STYLE_RENDERERS = {
     "seoul_booth": _render_seoul_booth,
     "milk_peach": _render_milk_peach,
     "clean_flash": _render_clean_flash,
     "berry_sticker": _render_berry_sticker,
+    "ribbon_diary": _render_ribbon_diary,
+    "aura_sticker": _render_aura_sticker,
+    "retro_film": _render_retro_film,
+    "watercolor": _render_watercolor,
+    "pencil_sketch": _render_pencil_sketch,
+    "comic_pop": _render_comic_pop,
+    "mono_film": _render_mono_film,
 }
 
 

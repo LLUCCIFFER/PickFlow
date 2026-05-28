@@ -1,4 +1,4 @@
-/* 片刻 — 前端逻辑 v3.2 (照片墙) */
+/* PickFlow — 前端逻辑 v3.3 (照片墙) */
 
 const $ = (id) => document.getElementById(id);
 const VIEWS = ["landing", "processing", "prescreen", "preview", "arena", "done"];
@@ -58,15 +58,15 @@ function showView(name, push = true) {
 }
 function updateTitle(view) {
   const map = {
-    landing: "片刻 · 轻松选片与韩式成片",
-    processing: "分析中… · 片刻",
-    prescreen: "初筛复核 · 片刻",
-    preview: "分组预览 · 片刻",
-    arena: currentGroup ? `组 #${currentGroup.id_short} · 片刻`
-                        : "选片中 · 片刻",
-    done: "完成 · 片刻",
+    landing: "PickFlow · 本地智能选片助手",
+    processing: "分析中… · PickFlow",
+    prescreen: "初筛复核 · PickFlow",
+    preview: "分组预览 · PickFlow",
+    arena: currentGroup ? `组 #${currentGroup.id_short} · PickFlow`
+                        : "选片中 · PickFlow",
+    done: "完成 · PickFlow",
   };
-  document.title = map[view] || "片刻";
+  document.title = map[view] || "PickFlow";
 }
 window.addEventListener("popstate", (e) => {
   const v = e.state?.view;
@@ -2326,20 +2326,64 @@ async function bootstrap() {
 }
 
 // =================================================================
-// 韩式大头贴 / 网感滤镜导出弹窗
+// 相机参数水印 / 韩式贴纸滤镜导出弹窗
 // =================================================================
+const WM_MODES = {
+  beautify: {
+    title: "贴纸与滤镜导出",
+    sub: "为胜出的照片添加韩式贴纸、相纸边框或网感滤镜，导出到 winners 子文件夹",
+    templateTitle: "贴纸 / 滤镜",
+    loadUrl: "/api/beautify/styles",
+    listKey: "styles",
+    previewUrl: "/api/beautify/preview",
+    startUrl: "/api/beautify/start",
+    statusUrl: "/api/beautify/status",
+    cancelUrl: "/api/beautify/cancel",
+    openUrl: "/api/beautify/open_out_dir",
+    cfgKey: "style",
+    defaultTemplate: "seoul_booth",
+    outputLabel: "winners/kstyle_时间戳",
+    stopConfirm: "中止贴纸/滤镜导出？已完成的照片会保留。",
+    doneToast: "贴纸/滤镜导出完成",
+  },
+  watermark: {
+    title: "专业相机参数水印",
+    sub: "为胜出的照片批量添加机型、镜头、焦段、光圈、快门、ISO 与拍摄时间水印",
+    templateTitle: "水印样式",
+    loadUrl: "/api/watermark/templates",
+    listKey: "templates",
+    previewUrl: "/api/watermark/preview",
+    startUrl: "/api/watermark/start",
+    statusUrl: "/api/watermark/status",
+    cancelUrl: "/api/watermark/cancel",
+    openUrl: "/api/watermark/open_out_dir",
+    cfgKey: "template",
+    defaultTemplate: "A",
+    outputLabel: "winners/watermarked_时间戳",
+    stopConfirm: "中止相机参数水印导出？已完成的照片会保留。",
+    doneToast: "相机参数水印导出完成",
+  },
+};
+
 const WM = {
+  mode: "beautify",
   previewIdx: 0,
   totalWinners: 0,
   previewSeq: 0,
   debounceHandle: null,
   pollHandle: null,
   isExporting: false,
-  template: "seoul_booth",
-  templates: [],
+  selected: {
+    beautify: "seoul_booth",
+    watermark: "A",
+  },
+  templates: {
+    beautify: [],
+    watermark: [],
+  },
 };
 
-const WM_THUMB_SVG = {
+const WM_BEAUTIFY_THUMBS = {
   seoul_booth: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
     <rect width='120' height='60' rx='7' fill='#fff7f8'/>
     <rect x='12' y='8' width='96' height='36' rx='4' fill='url(#p1)'/>
@@ -2368,47 +2412,136 @@ const WM_THUMB_SVG = {
     <rect x='36' y='49' width='48' height='4' rx='2' fill='#d95c8f'/>
     <defs><linearGradient id='p4' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#ffb7ce'/><stop offset='1' stop-color='#9f78db'/></linearGradient></defs>
   </svg>`,
+  ribbon_diary: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
+    <rect width='120' height='60' rx='7' fill='#f7fff7'/>
+    <rect x='10' y='8' width='100' height='37' rx='5' fill='url(#p5)'/>
+    <path d='M19 42l15-12v24zM51 42L36 30v24z' fill='#88d5c2'/>
+    <rect x='32' y='35' width='6' height='14' rx='2' fill='#fff' opacity='.82'/>
+    <rect x='42' y='49' width='36' height='4' rx='2' fill='#8bc8ba'/>
+    <defs><linearGradient id='p5' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#e6fff4'/><stop offset='1' stop-color='#c9e8ff'/></linearGradient></defs>
+  </svg>`,
+  aura_sticker: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
+    <rect width='120' height='60' rx='7' fill='#fbf7ff'/>
+    <rect x='10' y='8' width='100' height='38' rx='5' fill='url(#p6)'/>
+    <circle cx='90' cy='18' r='18' fill='#fff' opacity='.48'/>
+    <path d='M24 17l3 7 7 1-5 5 1 7-6-4-6 4 1-7-5-5 7-1 3-7Z' fill='#b98dff'/>
+    <rect x='38' y='49' width='44' height='4' rx='2' fill='#c59bff'/>
+    <defs><linearGradient id='p6' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#eadcff'/><stop offset='.58' stop-color='#ffe0ef'/><stop offset='1' stop-color='#dcecff'/></linearGradient></defs>
+  </svg>`,
+  retro_film: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
+    <rect width='120' height='60' rx='7' fill='#39291f'/>
+    <rect x='14' y='9' width='92' height='42' rx='4' fill='url(#p7)'/>
+    <path d='M20 17h80M20 43h80' stroke='#ffe0aa' stroke-width='2' opacity='.5'/>
+    <defs><linearGradient id='p7' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#d8a56f'/><stop offset='1' stop-color='#5a3426'/></linearGradient></defs>
+  </svg>`,
+  watercolor: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
+    <rect width='120' height='60' rx='7' fill='#fffaf0'/>
+    <circle cx='40' cy='28' r='22' fill='#ffc9d6' opacity='.56'/>
+    <circle cx='67' cy='27' r='25' fill='#bfe6ff' opacity='.56'/>
+    <circle cx='82' cy='31' r='18' fill='#d8f3c4' opacity='.58'/>
+    <path d='M20 43c18-18 39-23 80-15' stroke='#937e73' stroke-width='2' fill='none' opacity='.42'/>
+  </svg>`,
+  pencil_sketch: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
+    <rect width='120' height='60' rx='7' fill='#f6f1e9'/>
+    <path d='M22 42c14-27 34-28 48-8 9 12 18 10 28-7' stroke='#34312e' stroke-width='3' fill='none'/>
+    <path d='M24 19h28M68 18h22M40 49h41' stroke='#34312e' stroke-width='2' opacity='.38'/>
+  </svg>`,
+  comic_pop: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
+    <rect width='120' height='60' rx='7' fill='#16151a'/>
+    <rect x='12' y='8' width='96' height='44' rx='5' fill='#ffd84d'/>
+    <path d='M22 39l18-24 19 16 15-11 23 25' stroke='#151515' stroke-width='5' fill='none' stroke-linejoin='round'/>
+    <circle cx='88' cy='20' r='8' fill='#ff5a7a' stroke='#151515' stroke-width='3'/>
+  </svg>`,
+  mono_film: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
+    <rect width='120' height='60' rx='7' fill='#111'/>
+    <rect x='14' y='9' width='92' height='42' rx='4' fill='url(#p8)'/>
+    <path d='M25 42c18-20 32-24 50-5 8 8 14 8 23 0' stroke='#f3f1ea' stroke-width='3' fill='none' opacity='.7'/>
+    <defs><linearGradient id='p8' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#eeeeee'/><stop offset='1' stop-color='#3a3a3a'/></linearGradient></defs>
+  </svg>`,
 };
+
+const WM_WATERMARK_THUMBS = {
+  A: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#f8f7f4'/><rect x='8' y='8' width='104' height='34' rx='4' fill='#d9d4ca'/><rect x='8' y='44' width='104' height='8' fill='#fff'/><circle cx='60' cy='48' r='4' fill='#1d1d1f'/><path d='M15 49h25M80 49h25' stroke='#1d1d1f' stroke-width='2' stroke-linecap='round'/></svg>`,
+  B_full: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#fff'/><rect x='10' y='7' width='100' height='39' fill='#d8d5cf'/><path d='M34 52h52' stroke='#1d1d1f' stroke-width='3' stroke-linecap='round'/></svg>`,
+  B_clean: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#fff'/><rect x='10' y='7' width='100' height='40' fill='#e5e2dc'/><circle cx='60' cy='53' r='3' fill='#1d1d1f'/></svg>`,
+  C_full: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#d6d2ca'/><rect x='20' y='10' width='80' height='38' rx='5' fill='#fff' opacity='.92'/><rect x='30' y='17' width='60' height='20' fill='#a9a397'/><path d='M33 43h54' stroke='#1d1d1f' stroke-width='2'/></svg>`,
+  C_clean: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#d6d2ca'/><rect x='22' y='10' width='76' height='40' rx='5' fill='#fff' opacity='.92'/><circle cx='60' cy='43' r='4' fill='#1d1d1f'/></svg>`,
+  D_full: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#fff'/><rect x='14' y='8' width='92' height='34' fill='#d6d2c8'/><path d='M31 51h58' stroke='#1d1d1f' stroke-width='2'/></svg>`,
+  D_clean: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#fff'/><rect x='14' y='8' width='92' height='34' fill='#d6d2c8'/><circle cx='60' cy='51' r='4' fill='#1d1d1f'/></svg>`,
+  F_full: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#f7f4ee'/><rect x='8' y='7' width='104' height='46' fill='#ded9cf'/><rect x='16' y='40' width='10' height='10' fill='#cc785c'/><rect x='29' y='40' width='10' height='10' fill='#8da6a0'/><path d='M70 47h33' stroke='#1d1d1f' stroke-width='2'/></svg>`,
+  F_clean: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#f7f4ee'/><rect x='8' y='7' width='104' height='46' fill='#ded9cf'/><rect x='16' y='40' width='10' height='10' fill='#cc785c'/><circle cx='93' cy='45' r='4' fill='#1d1d1f'/></svg>`,
+  G: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#fff'/><rect x='12' y='9' width='96' height='42' fill='#d9d6cf'/></svg>`,
+  H: `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='60' rx='7' fill='#1d1d1f'/><rect x='17' y='12' width='86' height='37' rx='5' fill='#2f3032'/><rect x='29' y='20' width='44' height='21' fill='#b9b4aa'/><circle cx='88' cy='31' r='8' fill='#0d0d0e'/></svg>`,
+};
+
+function wmMeta() {
+  return WM_MODES[WM.mode] || WM_MODES.beautify;
+}
+
+function wmTemplates() {
+  return WM.templates[WM.mode] || [];
+}
+
+function wmSelected() {
+  return WM.selected[WM.mode] || wmMeta().defaultTemplate;
+}
+
+function wmSetSelected(id) {
+  WM.selected[WM.mode] = id || wmMeta().defaultTemplate;
+}
+
+function wmThumbSvg(t) {
+  const map = WM.mode === "watermark" ? WM_WATERMARK_THUMBS : WM_BEAUTIFY_THUMBS;
+  if (map[t.id]) return map[t.id];
+  const label = Array.from(t.name || t.id || "").slice(0, 5).join("");
+  return `<svg viewBox='0 0 120 60' xmlns='http://www.w3.org/2000/svg'>
+    <rect width='120' height='60' rx='7' fill='#f6f3ed'/>
+    <rect x='12' y='10' width='96' height='30' rx='5' fill='#ddd7cd'/>
+    <text x='60' y='52' text-anchor='middle' font-size='11' fill='#1d1d1f'>${escapeHtml(label)}</text>
+  </svg>`;
+}
 
 function wmCfg() {
   return {
-    style: WM.template,
+    [wmMeta().cfgKey]: wmSelected(),
     preview_index: WM.previewIdx,
   };
 }
 
 async function wmLoadTemplates() {
-  if (WM.templates.length) return WM.templates;
+  if (wmTemplates().length) return wmTemplates();
+  const meta = wmMeta();
   try {
-    const res = await fetchJSON("/api/beautify/styles");
-    WM.templates = res.styles || [];
+    const res = await fetchJSON(meta.loadUrl);
+    WM.templates[WM.mode] = res[meta.listKey] || [];
   } catch (e) {
-    WM.templates = [];
-    toast("加载风格列表失败：" + e.message);
+    WM.templates[WM.mode] = [];
+    toast("加载样式列表失败：" + e.message);
   }
-  return WM.templates;
+  return wmTemplates();
 }
 
 function wmRenderTemplatePicker() {
   const grid = $("wm-template-grid");
   if (!grid) return;
-  grid.innerHTML = WM.templates.map((t) => {
-    const svg = WM_THUMB_SVG[t.id] || "";
+  const selected = wmSelected();
+  grid.innerHTML = wmTemplates().map((t) => {
+    const svg = wmThumbSvg(t);
     return `
-    <button type="button" class="wm-tpl-card ${t.id === WM.template ? "active" : ""}"
-            data-tpl="${t.id}">
+    <button type="button" class="wm-tpl-card ${t.id === selected ? "active" : ""}"
+            data-tpl="${escapeHtml(t.id)}">
       <div class="wm-tpl-thumb">${svg}</div>
       <div class="wm-tpl-info">
-        <div class="name">${t.name}</div>
-        <div class="desc">${t.desc || ""}</div>
+        <div class="name">${escapeHtml(t.name || t.id)}</div>
+        <div class="desc">${escapeHtml(t.desc || "")}</div>
       </div>
     </button>`;
   }).join("");
   grid.querySelectorAll(".wm-tpl-card").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-tpl");
-      if (id === WM.template) return;
-      WM.template = id;
+      if (id === wmSelected()) return;
+      wmSetSelected(id);
       wmRenderTemplatePicker();
       wmRefreshPreview();
     });
@@ -2420,17 +2553,39 @@ function wmShowSpinner(show) {
   if (show) $("wm-preview-img").classList.add("hidden");
 }
 
-function wmFillInfo(style) {
-  const name = style?.name || "韩式大头贴";
-  const desc = style?.desc || "导出为独立副本，不覆盖原图。";
-  const rows = [
-    ["当前风格", name],
-    ["效果", desc],
-    ["输出目录", "winners/kstyle_时间戳"],
-    ["说明", "生成副本，原 winners 保持不变"],
-  ];
+function wmFillInfo(res) {
+  const meta = wmMeta();
+  const current = wmTemplates().find((t) => t.id === wmSelected()) || {};
+  const info = WM.mode === "beautify" ? (res?.style || current) : current;
+  let rows;
+  if (WM.mode === "watermark") {
+    const exif = res?.exif || {};
+    const camera = [exif.make, exif.model].filter(Boolean).join(" ") || "未读取到机身信息";
+    const params = [
+      exif.lens,
+      exif.focal_length,
+      exif.f_number,
+      exif.exposure,
+      exif.iso,
+      exif.datetime,
+    ].filter(Boolean).join(" · ") || "照片无完整 EXIF 时自动留空";
+    rows = [
+      ["当前水印", info.name || "标准底栏"],
+      ["样式", info.desc || "专业相机参数水印"],
+      ["相机", camera],
+      ["参数", params],
+      ["输出目录", meta.outputLabel],
+    ];
+  } else {
+    rows = [
+      ["当前风格", info.name || "韩式大头贴"],
+      ["效果", info.desc || "导出为独立副本，不覆盖原图。"],
+      ["输出目录", meta.outputLabel],
+      ["说明", "生成副本，原 winners 保持不变"],
+    ];
+  }
   $("wm-exif-list").innerHTML = rows.map(([k, v]) => `
-    <li><span class="k">${k}</span><span class="v">${v}</span></li>
+    <li><span class="k">${escapeHtml(k)}</span><span class="v">${escapeHtml(v)}</span></li>
   `).join("");
 }
 
@@ -2440,7 +2595,7 @@ async function wmRefreshPreview() {
   const mySeq = WM.previewSeq;
   wmShowSpinner(true);
   try {
-    const res = await fetchJSON("/api/beautify/preview", {
+    const res = await fetchJSON(wmMeta().previewUrl, {
       method: "POST",
       body: JSON.stringify(wmCfg()),
     });
@@ -2452,7 +2607,7 @@ async function wmRefreshPreview() {
     WM.previewIdx = res.preview_index || 0;
     $("wm-preview-idx").textContent = `${WM.previewIdx + 1} / ${WM.totalWinners}`;
     $("wm-preview-title").textContent = `预览 · ${res.source_name}`;
-    wmFillInfo(res.style || {});
+    wmFillInfo(res);
   } catch (e) {
     if (mySeq !== WM.previewSeq) return;
     wmShowSpinner(false);
@@ -2465,8 +2620,13 @@ function wmRefreshDebounced(delay = 300) {
   WM.debounceHandle = setTimeout(wmRefreshPreview, delay);
 }
 
-async function wmOpen() {
+async function wmOpen(mode = "beautify") {
+  WM.mode = mode;
+  const meta = wmMeta();
   $("wm-modal").classList.remove("hidden");
+  $("wm-title").textContent = meta.title;
+  $("wm-sub").textContent = meta.sub;
+  $("wm-template-title").textContent = meta.templateTitle;
   WM.previewIdx = 0;
   WM.isExporting = false;
   $("wm-progress").classList.add("hidden");
@@ -2476,9 +2636,10 @@ async function wmOpen() {
   $("wm-start").disabled = false;
   $("wm-start").textContent = "开始导出";
   $("wm-cancel").textContent = "关闭";
+  $("wm-preview-img").classList.add("hidden");
   await wmLoadTemplates();
-  if (!WM.templates.find((t) => t.id === WM.template)) {
-    WM.template = (WM.templates[0] && WM.templates[0].id) || "seoul_booth";
+  if (!wmTemplates().find((t) => t.id === wmSelected())) {
+    wmSetSelected((wmTemplates()[0] && wmTemplates()[0].id) || meta.defaultTemplate);
   }
   wmRenderTemplatePicker();
   wmRefreshPreview();
@@ -2486,7 +2647,7 @@ async function wmOpen() {
 
 function wmClose() {
   if (WM.isExporting) {
-    if (!confirm("美化导出正在进行中，确定关闭吗？后台仍会继续。")) return;
+    if (!confirm("导出正在进行中，确定关闭吗？后台仍会继续。")) return;
   }
   $("wm-modal").classList.add("hidden");
   clearTimeout(WM.debounceHandle);
@@ -2497,7 +2658,7 @@ async function wmStart() {
   $("wm-start").disabled = true;
   $("wm-start").textContent = "启动中…";
   try {
-    const res = await fetchJSON("/api/beautify/start", {
+    const res = await fetchJSON(wmMeta().startUrl, {
       method: "POST",
       body: JSON.stringify(wmCfg()),
     });
@@ -2517,7 +2678,7 @@ async function wmStart() {
 
 async function wmPoll() {
   try {
-    const s = await fetchJSON("/api/beautify/status");
+    const s = await fetchJSON(wmMeta().statusUrl);
     const done = s.done || 0;
     const total = s.total || 1;
     const pct = Math.round(done / total * 100);
@@ -2535,7 +2696,7 @@ async function wmPoll() {
       $("wm-stop").classList.add("hidden");
       $("wm-open-out").classList.remove("hidden");
       $("wm-cancel").textContent = "完成";
-      toast(`美化导出完成（${s.ok} 张）`);
+      toast(`${wmMeta().doneToast}（${s.ok} 张）`);
     } else if (s.status === "cancelled") {
       WM.isExporting = false;
       $("wm-progress-text").textContent = `已中止 · 完成 ${s.ok}/${s.total}`;
@@ -2557,20 +2718,21 @@ async function wmPoll() {
 }
 
 async function wmStop() {
-  if (!confirm("中止美化导出？已完成的照片会保留。")) return;
+  if (!confirm(wmMeta().stopConfirm)) return;
   try {
-    await fetchJSON("/api/beautify/cancel", { method: "POST", body: JSON.stringify({}) });
+    await fetchJSON(wmMeta().cancelUrl, { method: "POST", body: JSON.stringify({}) });
   } catch (e) { toast("中止失败：" + e.message); }
 }
 
 async function wmOpenOut() {
   try {
-    await fetchJSON("/api/beautify/open_out_dir", { method: "POST", body: JSON.stringify({}) });
+    await fetchJSON(wmMeta().openUrl, { method: "POST", body: JSON.stringify({}) });
   } catch (e) { toast("打开失败：" + e.message); }
 }
 
 // 绑定事件
-$("btn-beautify").addEventListener("click", wmOpen);
+$("btn-watermark").addEventListener("click", () => wmOpen("watermark"));
+$("btn-beautify").addEventListener("click", () => wmOpen("beautify"));
 $("wm-close").addEventListener("click", wmClose);
 $("wm-cancel").addEventListener("click", wmClose);
 $("wm-start").addEventListener("click", wmStart);
@@ -2590,4 +2752,69 @@ $("wm-modal").addEventListener("click", (e) => {
   if (e.target.id === "wm-modal") wmClose();
 });
 
+function initVisualMotion() {
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (reduceMotion) return;
+
+  const parallaxEls = Array.from(document.querySelectorAll(
+    ".hero-title, .hero-sub, .hero-meta, .done-hero, .winners-section, .wm-modal-card"
+  ));
+  parallaxEls.forEach((el, i) => {
+    el.classList.add("parallax-layer");
+    el.dataset.depth = String(0.012 + (i % 4) * 0.006);
+  });
+
+  let raf = 0;
+  const updateParallax = () => {
+    raf = 0;
+    const active = document.querySelector(".view.active");
+    const scrollTop = window.scrollY || document.documentElement.scrollTop || active?.scrollTop || 0;
+    const viewportH = window.innerHeight || 800;
+    parallaxEls.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const depth = Number(el.dataset.depth || 0.015);
+      const centerOffset = rect.top + rect.height / 2 - viewportH / 2;
+      const y = Math.max(-28, Math.min(28, -centerOffset * depth + scrollTop * depth * 0.08));
+      el.style.setProperty("--pf-parallax-y", `${y.toFixed(2)}px`);
+    });
+  };
+  const queueParallax = () => {
+    if (!raf) raf = requestAnimationFrame(updateParallax);
+  };
+
+  window.addEventListener("scroll", queueParallax, { passive: true });
+  document.addEventListener("scroll", queueParallax, true);
+  window.addEventListener("resize", queueParallax);
+  queueParallax();
+
+  const interactiveSelector = ".btn, .btn-ghost, .wm-tpl-card, .meta-item, .fast-only-card";
+  document.addEventListener("pointerdown", (e) => {
+    const el = e.target.closest?.(interactiveSelector);
+    if (!el) return;
+    el.classList.remove("is-pressed-pop");
+    void el.offsetWidth;
+    el.classList.add("is-pressed-pop");
+    window.setTimeout(() => el.classList.remove("is-pressed-pop"), 360);
+  }, { passive: true });
+
+  document.addEventListener("pointermove", (e) => {
+    const el = e.target.closest?.(interactiveSelector);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const x = e.clientX / rect.width - rect.left / rect.width - 0.5;
+    const y = e.clientY / rect.height - rect.top / rect.height - 0.5;
+    el.style.transform =
+      `perspective(900px) rotateX(${(-y * 2.2).toFixed(2)}deg) ` +
+      `rotateY(${(x * 3.0).toFixed(2)}deg) translate3d(0, -1px, 0)`;
+  }, { passive: true });
+
+  document.addEventListener("pointerout", (e) => {
+    const el = e.target.closest?.(interactiveSelector);
+    if (!el || (e.relatedTarget && el.contains(e.relatedTarget))) return;
+    el.style.transform = "";
+  }, true);
+}
+
+initVisualMotion();
 bootstrap();

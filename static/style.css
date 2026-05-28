@@ -1,5 +1,5 @@
 /* =========================================================
-   片刻 — 视觉系统
+   PickFlow — 视觉系统
    参考 Anthropic 2026 春季审美：
    - 暖白米色基调 + 陶土橘强调
    - 大尺寸衬线标题（带斜体强调）
@@ -164,10 +164,8 @@ code {
   font-family: var(--font-serif);
   font-size: 26px;
   font-weight: 500;
-  /* CJK 两字撑开一点，比"片刻"两个孤字挤在一起更像一个 wordmark；
-     padding-right 抵消末字 letter-spacing 留出的空白，让视觉重心居中 */
-  letter-spacing: 0.22em;
-  padding-right: 0.22em;
+  letter-spacing: 0.02em;
+  padding-right: 0;
   color: var(--ink);
   line-height: 1;
 }
@@ -1937,7 +1935,7 @@ span.sc-item { color: var(--ink-faint); }
 }
 
 /* =========================================================
-   片刻 v3 增量样式
+   PickFlow v3 增量样式
    ========================================================= */
 
 :root {
@@ -3071,7 +3069,7 @@ body:has(#view-processing.active) .status-badge {
 }
 
 /* =========================================================
-   韩式大头贴 / 网感滤镜导出弹窗
+   相机参数水印 / 韩式贴纸滤镜导出弹窗
    ========================================================= */
 .wm-modal {
   position: fixed; inset: 0;
@@ -3376,4 +3374,395 @@ body:has(#view-processing.active) .status-badge {
     border-bottom: 1px solid var(--line-soft, rgba(0,0,0,0.06));
   }
   .wm-preview-frame { min-height: 280px; }
+}
+
+/* =========================================================
+   PickFlow dark glass theme
+   ========================================================= */
+:root {
+  color-scheme: dark;
+  --bg: #050506;
+  --bg-warm: rgba(255, 255, 255, 0.065);
+  --bg-card: rgba(21, 22, 27, 0.62);
+  --bg-card-hover: rgba(34, 36, 44, 0.74);
+
+  --ink: #f5f5f7;
+  --ink-2: #d8d9df;
+  --ink-muted: #a7a9b4;
+  --ink-faint: #70737f;
+  --line: rgba(255, 255, 255, 0.16);
+  --line-soft: rgba(255, 255, 255, 0.10);
+  --line-faint: rgba(255, 255, 255, 0.06);
+
+  --accent: #8fd8ff;
+  --accent-deep: #f5f5f7;
+  --accent-soft: rgba(143, 216, 255, 0.16);
+  --accent-glow: rgba(143, 216, 255, 0.24);
+
+  --good: #9ee6bf;
+  --good-soft: rgba(158, 230, 191, 0.16);
+  --good-glow: rgba(158, 230, 191, 0.18);
+
+  --warn: #ffd48a;
+  --warn-soft: rgba(255, 212, 138, 0.18);
+
+  --shadow-sm: 0 1px 1px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 14px 34px rgba(0, 0, 0, 0.28), 0 2px 7px rgba(255, 255, 255, 0.03);
+  --shadow-lg: 0 28px 80px rgba(0, 0, 0, 0.42), 0 2px 9px rgba(255, 255, 255, 0.04);
+}
+
+html,
+body {
+  background:
+    linear-gradient(145deg, #050506 0%, #0c0d12 48%, #050506 100%);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 30%),
+    linear-gradient(90deg, rgba(143, 216, 255, 0.08), transparent 28%, transparent 72%, rgba(255, 255, 255, 0.035));
+  opacity: 0.75;
+}
+
+.grain {
+  opacity: 0.22;
+  mix-blend-mode: screen;
+}
+
+.landing-shell,
+.proc-shell,
+.preview-shell,
+.done-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.site-header,
+.preview-header,
+.arena-header,
+.done-header {
+  background: rgba(10, 11, 15, 0.54);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+  -webkit-backdrop-filter: blur(26px) saturate(1.35);
+  backdrop-filter: blur(26px) saturate(1.35);
+}
+
+.brand-mark {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(150, 214, 255, 0.72) 48%, rgba(70, 112, 255, 0.68));
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.65),
+    inset 0 -8px 16px rgba(0, 0, 0, 0.28),
+    0 0 24px rgba(143, 216, 255, 0.22);
+}
+
+.brand-name,
+.brand-tiny {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: #f5f5f7;
+}
+
+.site-tag,
+.eyebrow,
+.hero-sub,
+.preview-sub,
+.done-sub,
+.proc-sub,
+.auto-reject-hint,
+.prescreen-hint,
+.wm-modal-sub,
+.wm-preview-hint {
+  color: var(--ink-muted);
+}
+
+.eyebrow {
+  letter-spacing: 0.12em;
+  color: #c8e9ff;
+}
+
+.hero-title,
+.preview-title,
+.done-title {
+  color: #f5f5f7;
+  letter-spacing: 0;
+  text-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+}
+
+.hero-title em,
+.done-title em {
+  color: #cdeeff;
+  text-shadow: 0 0 32px rgba(143, 216, 255, 0.28);
+}
+
+.start-form,
+.fast-only-card,
+.folder-snapshot,
+.advanced,
+.hero-meta .meta-item,
+.proc-terminal,
+.proc-bottom,
+.proc-stat,
+.prescreen-stats .stat,
+.preview-controls,
+.preview-controls-fold,
+.winners-section,
+.done-paths,
+.unfinished-notice,
+.skipped-section,
+.tutorial-card,
+.modal-card,
+.wm-modal-card,
+.wm-exif-card,
+.status-badge,
+.skip-notice,
+.grouping-overlay .grp-header {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.045));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 22px 60px rgba(0, 0, 0, 0.34);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  backdrop-filter: blur(28px) saturate(1.35);
+}
+
+.start-form,
+.fast-only-card,
+.hero-meta .meta-item,
+.winners-section,
+.done-paths,
+.wm-modal-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.start-form::before,
+.fast-only-card::before,
+.hero-meta .meta-item::before,
+.winners-section::before,
+.done-paths::before,
+.wm-modal-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.22), transparent 18%, transparent 76%, rgba(255, 255, 255, 0.06));
+  opacity: 0.36;
+}
+
+.fast-only-pill,
+.pill,
+.legend-chip,
+.winners-count,
+.status-badge {
+  background: rgba(255, 255, 255, 0.10);
+  color: #f5f5f7;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.btn,
+.btn-ghost,
+.wm-tpl-card,
+.meta-item,
+.fast-only-card,
+.winners-section {
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform .22s var(--ease),
+    background .22s var(--ease),
+    border-color .22s var(--ease),
+    box-shadow .22s var(--ease),
+    color .22s var(--ease),
+    opacity .22s var(--ease);
+}
+
+.btn-primary {
+  color: #050506;
+  background: #f5f5f7;
+  box-shadow: 0 12px 32px rgba(255, 255, 255, 0.10);
+}
+
+.btn-primary:hover {
+  background: #ffffff;
+  color: #050506;
+  box-shadow: 0 16px 42px rgba(143, 216, 255, 0.18);
+}
+
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.065);
+  color: #f5f5f7;
+  border-color: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+.btn-ghost:hover,
+.wm-tpl-card:hover,
+.hero-meta .meta-item:hover,
+.fast-only-card:hover {
+  transform: translate3d(0, -2px, 0);
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.13);
+  box-shadow: 0 20px 58px rgba(0, 0, 0, 0.38);
+}
+
+.btn:active,
+.btn-ghost:active,
+.wm-tpl-card:active {
+  transform: translate3d(0, 0, 0) scale(0.985);
+}
+
+input,
+textarea,
+select {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f5f7;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+input::placeholder {
+  color: rgba(245, 245, 247, 0.42);
+}
+
+code,
+.kbd {
+  background: rgba(255, 255, 255, 0.10);
+  color: #e8f6ff;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.proc-wall,
+.preview-grid,
+.done-album,
+.winners-grid,
+.auto-reject-grid,
+.strip,
+.grp-strip {
+  scrollbar-color: rgba(255, 255, 255, 0.34) transparent;
+}
+
+.img-frame,
+.preview-tile,
+.winner-card,
+.auto-card,
+.album-thumb,
+.wall-cell,
+.wm-preview-frame,
+.lightbox {
+  background: #0e0f14;
+  border-color: rgba(255, 255, 255, 0.11);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.40);
+}
+
+.progress-bar,
+.bar,
+.wm-progress-bar {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.progress-fill,
+.bar-fill,
+.wm-progress-fill {
+  background: linear-gradient(90deg, #f5f5f7, #8fd8ff);
+  box-shadow: 0 0 18px rgba(143, 216, 255, 0.34);
+}
+
+.wm-modal {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.wm-modal-card {
+  border-radius: 22px;
+  width: min(1120px, 94vw);
+}
+
+.wm-options,
+.wm-modal-head,
+.wm-modal-foot {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+.wm-tpl-card {
+  background: rgba(255, 255, 255, 0.075);
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+.wm-tpl-card.active {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(245, 245, 247, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 1px rgba(143, 216, 255, 0.18),
+    0 18px 44px rgba(0, 0, 0, 0.34);
+}
+
+.wm-tpl-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+}
+
+.wm-tpl-card .name,
+.wm-exif-list .v {
+  color: #f5f5f7;
+}
+
+.wm-exif-list li {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.wm-close:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: #f5f5f7;
+}
+
+.proc-terminal,
+.proc-terminal-line,
+.wm-preview-title,
+.wm-section-title,
+.wm-preview-idx,
+.wm-progress-text,
+.proc-label,
+.proc-elapsed {
+  color: var(--ink-muted);
+}
+
+.parallax-layer {
+  will-change: transform;
+  transform: translate3d(0, var(--pf-parallax-y, 0px), 0);
+}
+
+.motion-reactive {
+  will-change: transform;
+}
+
+.is-pressed-pop {
+  animation: pfPress .34s var(--ease-out);
+}
+
+@keyframes pfPress {
+  0% { transform: scale(1); }
+  38% { transform: scale(0.975); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view.active,
+  .btn,
+  .btn-ghost,
+  .wm-tpl-card,
+  .meta-item,
+  .fast-only-card,
+  .winners-section,
+  .parallax-layer {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
 }

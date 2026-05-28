@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 片刻 — 启动脚本
+# PickFlow — 启动脚本
 #
 # 第一次运行：自动创建 .venv 并装依赖
 # 后续运行：直接启动
@@ -49,5 +49,5 @@ if [ "$needs_install" = "1" ]; then
 fi
 
 # ---------- 启动 ----------
-echo "▶ 启动 pic_selecter..."
+echo "▶ 启动 PickFlow..."
 exec python app.py "$@"
