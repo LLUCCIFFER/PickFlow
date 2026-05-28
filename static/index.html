@@ -730,6 +730,20 @@
   </div>
 </div>
 
-<script src="/static/app.js?v=20260528p"></script>
+<script>
+  window.__pickflowAppLoaded = false;
+  window.__pickflowLoadLocalApp = function () {
+    if (window.__pickflowAppLoaded || window.__pickflowLocalAppLoading) return;
+    window.__pickflowLocalAppLoading = true;
+    const localScript = document.createElement("script");
+    localScript.src = "./app.js?v=20260529a";
+    localScript.onload = function () { window.__pickflowAppLoaded = true; };
+    document.body.appendChild(localScript);
+  };
+</script>
+<script src="/static/app.js?v=20260529a" onload="window.__pickflowAppLoaded=true" onerror="window.__pickflowLoadLocalApp()"></script>
+<script>
+  if (location.protocol === "file:") window.__pickflowLoadLocalApp();
+</script>
 </body>
 </html>

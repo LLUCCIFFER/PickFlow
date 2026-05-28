@@ -112,6 +112,35 @@ async function fetchJSON(url, opts = {}) {
   return data;
 }
 
+async function fetchJSONWithTimeout(url, opts = {}, timeoutMs = 30000, timeoutMessage = "请求超时") {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetchJSON(url, { ...opts, signal: controller.signal });
+  } catch (err) {
+    if (err.name === "AbortError") throw new Error(timeoutMessage);
+    throw err;
+  } finally {
+    window.clearTimeout(timer);
+  }
+}
+
+function isFilePreview() {
+  return location.protocol === "file:";
+}
+
+function backendRequiredMessage() {
+  return "请通过启动器打开 PickFlow（http://127.0.0.1:5057/）。直接打开 HTML 无法调起本地后端选择文件夹。";
+}
+
+function showBackendRequired(showToast = true) {
+  const msg = backendRequiredMessage();
+  const errEl = $("start-error");
+  if (errEl) errEl.textContent = msg;
+  setStatus("请通过启动器打开", "waiting");
+  if (showToast) toast(msg);
+}
+
 function fmtElapsed(s) {
   if (s == null || isNaN(s) || s < 0) return "";
   if (s < 60) return `${s.toFixed(1)} 秒`;
@@ -434,10 +463,19 @@ $("start-btn").addEventListener("click", handleStart);
 $("start-form").addEventListener("submit", handleStart);
 
 $("browse-btn").addEventListener("click", async () => {
+  if (isFilePreview()) {
+    showBackendRequired(true);
+    return;
+  }
   const btn = $("browse-btn");
   btn.disabled = true;
   try {
-    const r = await fetchJSON("/api/browse_folder", { method: "POST" });
+    const r = await fetchJSONWithTimeout(
+      "/api/browse_folder",
+      { method: "POST" },
+      30000,
+      "选择窗口没有响应，请检查是否被系统隐藏在其他窗口后方，或直接粘贴文件夹路径"
+    );
     if (r.cancelled) return;
     if (r.folder) {
       $("folder-input").value = r.folder;
@@ -2817,4 +2855,11 @@ function initVisualMotion() {
 }
 
 initVisualMotion();
-bootstrap();
+if (isFilePreview()) {
+  renderRecent();
+  showView("landing", false);
+  history.replaceState({ view: "landing" }, "", location.pathname);
+  showBackendRequired(false);
+} else {
+  bootstrap();
+}

@@ -3172,10 +3172,20 @@ def api_browse_folder():
             except Exception:
                 return jsonify({"error": "系统未安装 tkinter，无法调起选择框"}), 500
             root = tkinter.Tk()
-            root.withdraw()
-            root.attributes("-topmost", True)
-            chosen = filedialog.askdirectory(title="选择要处理的照片文件夹")
-            root.destroy()
+            try:
+                root.withdraw()
+                root.attributes("-topmost", True)
+                root.update_idletasks()
+                root.update()
+                chosen = filedialog.askdirectory(
+                    parent=root,
+                    title="选择要处理的照片文件夹",
+                )
+            finally:
+                try:
+                    root.destroy()
+                except Exception:
+                    pass
             if not chosen:
                 return jsonify({"ok": True, "cancelled": True})
             return jsonify({"ok": True, "folder": chosen})
