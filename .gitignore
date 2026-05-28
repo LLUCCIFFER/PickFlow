@@ -1,0 +1,68 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ===== 虚拟环境 =====
+.venv/
+demo/
+venv/
+env/
+.python-version
+
+# ===== 依赖 stamp =====
+.pic_selecter_deps.stamp
+
+# ===== 用户数据 / 照片 =====
+# 测试和运行时产生的照片、模型缓存、state 都不入库
+img/
+*.heic
+*.HEIC
+*.raw
+*.RAW
+*.arw
+*.ARW
+*.cr2
+*.CR2
+*.cr3
+*.CR3
+*.nef
+*.NEF
+*.dng
+*.DNG
+
+# 运行时缓存与状态
+.cache/
+state.json
+.pic_selecter_state.json
+_pic_selecter/
+winners/
+losers/
+*.session.json
+log.txt
+job-*.log
+
+# ===== IDE / OS =====
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# .claude 里 launch.json 含本机绝对路径，不入库
+.claude/
+
+# ===== 临时 / 备份 =====
+*.bak
+*.tmp
+*.log
+.tmp_*/
+
+# 内部审计 / 设计文档，不入库
+docs/

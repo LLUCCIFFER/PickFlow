@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>片刻 — 轻松选片与韩式成片</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23cc785c'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/style.css?v=20260528k">
+</head>
+<body>
+
+<!-- ============ 全局引擎状态徽章 ============ -->
+<div id="status-badge" class="status-badge">
+  <span class="status-dot"></span>
+  <span class="status-text" id="status-text">引擎就绪</span>
+</div>
+
+<!-- ============ 着陆页 ============ -->
+<section id="view-landing" class="view active">
+  <div class="grain"></div>
+  <div class="landing-shell">
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-name">片刻</span>
+      </div>
+      <span class="site-tag">本地运行 · 不上传</span>
+    </header>
+
+    <main class="landing-main">
+      <p class="eyebrow">本地极速选片 · 韩式氛围导出</p>
+      <h1 class="hero-title">快速留下好照片，<br>再做成<em>网感成片</em>。</h1>
+      <p class="hero-sub">选择照片文件夹后，系统会本地扫描、自动分组、初筛明显废片；完成后可一键加入韩式大头贴边框、贴纸或清透滤镜。</p>
+
+      <form id="start-form" class="start-form" autocomplete="off" action="javascript:void(0)" onsubmit="return false">
+        <div class="fast-only-card" aria-label="当前模式">
+          <span class="fast-only-pill">极速模式</span>
+          <div>
+            <strong>本地完成扫描与分组</strong>
+            <span>使用 pHash、HSV、ORB 等轻量算法，不上传照片，不需要模型或外部账号。</span>
+          </div>
+        </div>
+        <label class="field-label" for="folder-input">照片文件夹</label>
+        <div class="field-row" id="folder-drop">
+          <button type="button" id="browse-btn" class="btn-ghost btn-browse" title="打开系统选择对话框">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M2 4.5A1.5 1.5 0 0 1 3.5 3h2.04a1.5 1.5 0 0 1 1.06.44L7.66 4.34a1.5 1.5 0 0 0 1.06.44H12.5A1.5 1.5 0 0 1 14 6.28V11.5A1.5 1.5 0 0 1 12.5 13h-9A1.5 1.5 0 0 1 2 11.5v-7Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+            选择文件夹
+          </button>
+          <input
+            type="text"
+            id="folder-input"
+            name="folder"
+            placeholder="或粘贴 / 拖入路径"
+            spellcheck="false"
+            autocapitalize="off"
+            required
+          >
+          <button type="button" id="start-btn" class="btn btn-primary">
+            开始
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 路径选好后浮出的"文件夹快照"：纯文件系统数据，0 推理 -->
+        <div id="folder-snapshot" class="folder-snapshot hidden">
+          <div class="snap-row">
+            <div class="snap-stat">
+              <div class="snap-num" id="snap-count">0</div>
+              <div class="snap-cap">张照片</div>
+            </div>
+            <div class="snap-divider"></div>
+            <div class="snap-stat">
+              <div class="snap-line" id="snap-period">—</div>
+              <div class="snap-line snap-line-sub" id="snap-active">—</div>
+            </div>
+            <div class="snap-divider"></div>
+            <div class="snap-stat">
+              <div class="snap-line" id="snap-size">—</div>
+              <div class="snap-line snap-line-sub" id="snap-resume">—</div>
+            </div>
+          </div>
+          <div class="snap-samples" id="snap-samples"></div>
+        </div>
+
+        <details class="advanced">
+          <summary>更多选项</summary>
+          <div class="advanced-body">
+            <div class="opt-section">
+              <div class="opt-label">归档方式</div>
+              <label class="radio">
+                <input type="radio" name="mode" value="move" checked>
+                <span><strong>移动</strong> · 原片直接归入 winners/ losers/（推荐）</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="mode" value="copy">
+                <span><strong>复制</strong> · 原片保留，winners/ 为副本</span>
+              </label>
+            </div>
+
+            <div class="opt-section">
+              <label class="check">
+                <input type="checkbox" id="opt-prescreen" checked>
+                <span>智能初筛 · 先自动淘汰明显的失焦 / 闭眼 / 过曝</span>
+              </label>
+            </div>
+
+            <div class="opt-section" id="prescreen-strength-row">
+              <div class="opt-label">初筛力度</div>
+              <label class="radio">
+                <input type="radio" name="prescreen-strength" value="standard">
+                <span><strong>标准</strong> · 识别主体糊/严重歪斜/曝光问题</span>
+              </label>
+              <label class="radio">
+                <input type="radio" name="prescreen-strength" value="advanced" checked>
+                <span><strong>进阶</strong> · 推荐档位，阈值更严，能拒更多疑似废片</span>
+              </label>
+            </div>
+
+            <details class="adv-deep">
+              <summary>分组阈值（默认通常足够好）</summary>
+              <div class="slider-row">
+                <label for="thr-near">同场景宽容度</label>
+                <input type="range" id="thr-near" min="4" max="16" step="1" value="10">
+                <span class="slider-val" id="thr-near-val">10</span>
+              </div>
+              <div class="slider-row">
+                <label for="thr-far">跨场景严格度</label>
+                <input type="range" id="thr-far" min="3" max="12" step="1" value="6">
+                <span class="slider-val" id="thr-far-val">6</span>
+              </div>
+              <div class="slider-row">
+                <label for="thr-near-secs">同场景时间窗（分钟）</label>
+                <input type="range" id="thr-near-secs" min="1" max="30" step="1" value="5">
+                <span class="slider-val" id="thr-near-secs-val">5</span>
+              </div>
+            </details>
+          </div>
+        </details>
+
+        <p id="start-error" class="form-error"></p>
+      </form>
+
+      <div class="hero-meta">
+        <div class="meta-item">
+          <div class="meta-num">01</div>
+          <div class="meta-text"><strong>选择</strong><br>粘贴或拖入照片文件夹</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-num">02</div>
+          <div class="meta-text"><strong>筛选</strong><br>本地初筛 · 左右对比</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-num">03</div>
+          <div class="meta-text"><strong>美化</strong><br>韩式贴纸 · 清透滤镜</div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="landing-foot">
+      <div class="landing-foot-row">
+        <span>操作：选文件夹 → 开始 → 左右选择 → 完成页导出滤镜成片</span>
+        <span>JPG · PNG · HEIC · WEBP · TIFF · RAW</span>
+      </div>
+    </footer>
+  </div>
+</section>
+
+<!-- ============ 处理进度页（照片墙版） ============ -->
+<section id="view-processing" class="view">
+  <div class="grain"></div>
+  <div class="proc-shell">
+
+    <!-- 顶部精简栏：标题 + 三股计数器 -->
+    <header class="proc-top">
+      <div class="proc-top-left">
+        <p class="eyebrow" id="proc-title-eyebrow">分析中</p>
+        <h2 class="proc-title-sm" id="proc-title">正在过目每张照片</h2>
+        <p class="proc-sub" id="proc-folder"></p>
+      </div>
+      <div class="proc-counters proc-counters-inline">
+        <div class="proc-stat">
+          <div class="proc-stat-num" id="proc-counter-scanned">0</div>
+          <div class="proc-stat-cap">已过目</div>
+        </div>
+        <div class="proc-stat">
+          <div class="proc-stat-num" id="proc-counter-total">—</div>
+          <div class="proc-stat-cap">总张数</div>
+        </div>
+        <div class="proc-stat">
+          <div class="proc-stat-num" id="proc-counter-rejected">0</div>
+          <div class="proc-stat-cap">检出失败</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 终端式滚动日志条：展示本地极速分析信号 -->
+    <div class="proc-terminal" id="proc-terminal">
+      <div class="proc-terminal-track" id="proc-terminal-track"></div>
+    </div>
+
+    <!-- 主视觉：照片墙 -->
+    <div class="proc-wall" id="proc-wall"></div>
+
+    <!-- 失焦 / 闭眼 / 曝光 / 构图 等类别图例 -->
+    <div class="proc-legend" id="proc-legend">
+      <span class="legend-chip cat-blur"><span class="legend-dot"></span>失焦</span>
+      <span class="legend-chip cat-eyes"><span class="legend-dot"></span>闭眼</span>
+      <span class="legend-chip cat-exposure"><span class="legend-dot"></span>曝光</span>
+      <span class="legend-chip cat-comp"><span class="legend-dot"></span>构图</span>
+      <span class="legend-chip cat-format"><span class="legend-dot"></span>非拍摄</span>
+    </div>
+
+    <!-- 底部进度 + 操作 -->
+    <footer class="proc-bottom">
+      <div class="progress">
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        <div class="progress-meta">
+          <span id="progress-count">0 / 0</span>
+          <span id="progress-pct">0%</span>
+        </div>
+      </div>
+      <div class="proc-bottom-row">
+        <div class="proc-bottom-text">
+          <p id="progress-label" class="proc-label">准备中</p>
+          <p id="proc-elapsed" class="proc-elapsed"></p>
+          <p id="proc-eta" class="proc-elapsed"></p>
+        </div>
+        <button id="btn-cancel-job" class="btn-ghost">中止分析</button>
+      </div>
+    </footer>
+
+    <div id="skip-notice" class="skip-notice hidden">
+      <div class="skip-head">
+        <span class="skip-num" id="skip-num">0</span>
+        <span class="skip-label">张无法读取，已跳过</span>
+      </div>
+      <ul id="skip-list" class="skip-list"></ul>
+    </div>
+
+    <p id="proc-error" class="form-error center"></p>
+  </div>
+</section>
+
+<!-- ============ 智能初筛复核页 ============ -->
+<section id="view-prescreen" class="view">
+  <div class="grain"></div>
+  <header class="preview-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-tiny">片刻 · 初筛复核</span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-prescreen-skip" class="btn-ghost">跳过复核</button>
+      <button class="btn-ghost btn-go-home" title="放弃当前任务，回到主页">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 12L12 4L21 12M5 10V20H10V14H14V20H19V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>回主页</span>
+      </button>
+    </div>
+  </header>
+  <main class="preview-shell prescreen-shell">
+    <p class="eyebrow center">AI 建议放手的照片</p>
+    <h2 class="preview-title" id="prescreen-title">看起来可以放手的照片</h2>
+    <p class="preview-sub" id="prescreen-sub">如有想留下的，点一下即可保留。其余将归入 losers/。</p>
+
+    <div class="done-stats prescreen-stats">
+      <div class="stat"><div class="stat-num" id="ps-total">0</div><div class="stat-cap">本次共扫描</div></div>
+      <div class="stat"><div class="stat-num" id="ps-rejected">0</div><div class="stat-cap">建议放手</div></div>
+      <div class="stat highlight"><div class="stat-num" id="ps-pending">0</div><div class="stat-cap">仍待放手</div></div>
+      <div class="stat"><div class="stat-num" id="ps-entering">0</div><div class="stat-cap">已选保留</div></div>
+    </div>
+
+    <!-- 按理由筛选：让用户能一类一类扫，不是逐张 -->
+    <div id="prescreen-chips" class="prescreen-chips"></div>
+
+    <div class="winners-section auto-reject-section" id="prescreen-auto-section">
+      <div class="winners-section-head">
+        <h2 class="winners-section-title">建议放手的照片</h2>
+        <span class="winners-count" id="prescreen-auto-count"></span>
+      </div>
+      <div id="prescreen-auto-grid" class="auto-reject-grid"></div>
+    </div>
+
+    <div class="preview-actions prescreen-actions">
+      <button id="btn-prescreen-continue" class="btn btn-primary">确认全部放手，进入选片</button>
+      <button id="btn-prescreen-all" class="btn-ghost">全部保留 · 我自己看</button>
+    </div>
+    <p class="prescreen-hint">如属创作意图，可逐张点开保留。建议放手的照片在完成页仍可召回。</p>
+  </main>
+</section>
+
+<!-- ============ 整理分组过渡（body 顶层，避免被任意 view 的 transform 限制） ============ -->
+<div id="grouping-overlay" class="grouping-overlay hidden">
+  <div class="grp-header">
+    <div class="grp-intro-spinner" aria-hidden="true"></div>
+    <p class="grp-title" id="grp-title">正在整理分组…</p>
+    <p class="grp-sub" id="grp-sub">分析照片相似度，按主体智能合并</p>
+  </div>
+  <div class="grp-slots" id="grp-slots"></div>
+  <div class="grp-strip-wrap">
+    <div class="grp-strip" id="grp-strip"></div>
+  </div>
+</div>
+
+<!-- ============ 预览分组页 ============ -->
+<section id="view-preview" class="view">
+  <div class="grain"></div>
+  <header class="preview-header">
+    <div class="brand">
+      <span class="brand-mark"></span>
+      <span class="brand-tiny">片刻 · 分组预览</span>
+    </div>
+    <div class="header-actions">
+      <button id="btn-preview-back" class="btn-ghost">回到首页</button>
+      <button class="btn-ghost btn-go-home" title="放弃当前任务，回到主页">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 12L12 4L21 12M5 10V20H10V14H14V20H19V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>回主页</span>
+      </button>
+    </div>
+  </header>
+  <main class="preview-shell">
+    <p class="eyebrow center">先看一眼分组</p>
+    <h2 class="preview-title" id="preview-title">分组就绪</h2>
+    <p class="preview-sub" id="preview-sub">每组的金边那张是 AI 候选——不强制，你可以推翻。</p>
+
+    <details class="preview-controls-fold">
+      <summary>分组不理想？调一下阈值</summary>
+      <div class="preview-controls">
+        <div class="slider-row">
+          <label for="prv-near">同场景宽容度</label>
+          <input type="range" id="prv-near" min="4" max="16" step="1" value="10">
+          <span class="slider-val" id="prv-near-val">10</span>
+        </div>
+        <div class="slider-row">
+          <label for="prv-far">跨场景严格度</label>
+          <input type="range" id="prv-far" min="3" max="12" step="1" value="6">
+          <span class="slider-val" id="prv-far-val">6</span>
+        </div>
+        <div class="slider-row">
+          <label for="prv-secs">同场景时间窗 (分钟)</label>
+          <input type="range" id="prv-secs" min="1" max="30" step="1" value="5">
+          <span class="slider-val" id="prv-secs-val">5</span>
+        </div>
+        <button id="btn-regroup" class="btn-ghost">用新阈值重新分组</button>
+      </div>
+    </details>
+
+    <div id="preview-grid" class="preview-grid"></div>
+
+    <div class="preview-actions">
+      <button id="btn-preview-continue" class="btn btn-primary">开始选片</button>
+    </div>
+  </main>
+</section>
+
+<!-- ============ 选片页 ============ -->
+<section id="view-arena" class="view">
+  <header class="arena-header">
+    <div class="arena-h-left">
+      <span class="brand-mark sm"></span>
+      <span class="brand-tiny">片刻</span>
+      <span class="dot-sep">·</span>
+      <span class="arena-folder" id="arena-folder"></span>
+    </div>
+    <div class="arena-h-mid">
+      <div class="overall">
+        <span class="overall-label">总进度</span>
+        <div class="bar"><div id="overall-fill" class="bar-fill"></div></div>
+        <span id="overall-text" class="overall-text">0 / 0 组</span>
+      </div>
+    </div>
+    <div class="arena-h-right">
+      <span id="mode-pill" class="pill mode hidden">复制</span>
+      <span id="dry-run-pill" class="pill warn hidden">试运行</span>
+      <span id="zoom-pill" class="pill zoom hidden">1×</span>
+      <button id="btn-quit" class="btn-ghost" title="处理另一个文件夹">换文件夹</button>
+      <button class="btn-ghost btn-go-home" title="放弃当前任务，回到主页">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 12L12 4L21 12M5 10V20H10V14H14V20H19V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>回主页</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="group-meta">
+    <div class="group-line">
+      <span class="group-label" id="group-label"></span>
+      <span class="group-prog-text" id="group-prog-text"></span>
+    </div>
+    <div class="bar thin"><div id="group-fill" class="bar-fill"></div></div>
+  </div>
+
+  <div id="single-banner" class="single-banner hidden">
+    只剩这一张未决 — <span class="kbd">↑</span> 或 <span class="kbd">←</span> 留下；<span class="kbd">↓</span> 或 <span class="kbd">[</span> 丢弃
+  </div>
+
+  <main id="arena" class="arena-main">
+    <div class="side" id="side-left">
+      <div class="img-frame">
+        <button class="kick-btn" data-side="left" title="只踢掉这张">⊘ 踢掉</button>
+        <div class="zoom-viewport">
+          <img id="img-left" alt="左侧图片">
+        </div>
+        <div class="verdict win">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>留</span>
+        </div>
+        <div class="verdict lose">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+          <span>弃</span>
+        </div>
+        <div class="broken-overlay">无法读取此图</div>
+        <div class="img-overlay">
+          <span class="kbd-hint">点击 / ←</span>
+          <span class="overlay-text">选这张</span>
+        </div>
+      </div>
+      <div class="caption" id="caption-left"></div>
+      <div class="exif-line" id="exif-left"></div>
+      <div class="llm-comment" id="llm-left" hidden></div>
+    </div>
+
+    <!-- AI 提示的两图差异：基于本地质量分，措辞带"看起来"，不下结论 -->
+    <div id="arena-diff" class="arena-diff hidden">
+      <span class="arena-diff-mark">≈</span>
+      <span class="arena-diff-text" id="arena-diff-text"></span>
+    </div>
+
+    <div class="vs">
+      <div class="vs-line"></div>
+      <div class="vs-mark">vs</div>
+      <div class="vs-line"></div>
+    </div>
+
+    <div class="side" id="side-right">
+      <div class="img-frame">
+        <button class="kick-btn" data-side="right" title="只踢掉这张">⊘ 踢掉</button>
+        <div class="zoom-viewport">
+          <img id="img-right" alt="右侧图片">
+        </div>
+        <div class="empty-overlay">已无对比图</div>
+        <div class="verdict win">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>留</span>
+        </div>
+        <div class="verdict lose">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          </svg>
+          <span>弃</span>
+        </div>
+        <div class="broken-overlay">无法读取此图</div>
+        <div class="img-overlay">
+          <span class="kbd-hint">点击 / →</span>
+          <span class="overlay-text">选这张</span>
+        </div>
+      </div>
+      <div class="caption" id="caption-right"></div>
+      <div class="exif-line" id="exif-right"></div>
+      <div class="llm-comment" id="llm-right" hidden></div>
+    </div>
+  </main>
+
+  <div id="strip" class="strip"></div>
+
+  <!-- 角落"已选堆"：最近 3 张胜出的缩略图，给用户累积感 -->
+  <div id="arena-stack" class="arena-stack hidden"></div>
+
+  <footer class="arena-footer">
+    <div class="shortcut-bar">
+      <span class="sc-item"><span class="kbd">←</span> 选左</span>
+      <span class="sc-item"><span class="kbd">→</span> 选右</span>
+      <button id="btn-both-keep" class="sc-item sc-action">
+        <span class="kbd">↑</span> 都留
+      </button>
+      <button id="btn-both" class="sc-item sc-action">
+        <span class="kbd">↓</span> 都弃
+      </button>
+      <span class="sc-item"><span class="kbd">[</span> 单独弃左</span>
+      <span class="sc-item"><span class="kbd">]</span> 单独弃右</span>
+      <button id="btn-skip-group" class="sc-item sc-action">
+        <span class="kbd">S</span> 稍后再决
+      </button>
+      <span class="sc-item"><span class="kbd">Z</span> 缩放 1× / 2× / 4×</span>
+      <button id="btn-undo" class="sc-item sc-action" disabled>
+        <span class="kbd">⇧Z</span> 撤销
+      </button>
+    </div>
+  </footer>
+
+  <img id="preload" class="preload" alt="">
+
+  <!-- 教学浮层（首次进入显示） -->
+  <div id="tutorial" class="tutorial hidden">
+    <div class="tutorial-card">
+      <h3>快捷键</h3>
+      <div class="tut-grid">
+        <div><span class="kbd">←</span> 选左</div>
+        <div><span class="kbd">→</span> 选右</div>
+        <div><span class="kbd">↑</span> 都留（两张同时进 winners）</div>
+        <div><span class="kbd">↓</span> 都弃（两张同时归 losers）</div>
+        <div><span class="kbd">[</span> / <span class="kbd">]</span> 单独弃左 / 右</div>
+        <div><span class="kbd">S</span> 稍后再决</div>
+        <div><span class="kbd">Z</span> 切换缩放（1× / 2× / 4×）</div>
+        <div><span class="kbd">⇧Z</span> 撤销当前组</div>
+      </div>
+      <button id="btn-tut-close" class="btn btn-primary small">明白了</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 完成页 ============ -->
+<section id="view-done" class="view">
+  <div class="grain"></div>
+  <header class="done-header">
+    <div class="done-h-left">
+      <span class="brand-mark sm"></span>
+      <span class="brand-tiny">片刻</span>
+    </div>
+    <div class="done-h-right">
+      <button id="btn-open-folder" class="btn-ghost">打开文件夹</button>
+      <button id="btn-beautify" class="btn-ghost" title="给胜出照片批量加入韩式贴纸或网感滤镜">韩式大头贴</button>
+      <button id="btn-redo-folder" class="btn-ghost" title="清掉本次结果，重新挑这个文件夹">重做本次</button>
+      <button class="btn-ghost btn-go-home" title="回到主页">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 12L12 4L21 12M5 10V20H10V14H14V20H19V10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>回主页</span>
+      </button>
+      <button id="btn-restart" class="btn btn-primary small">
+        处理另一个文件夹
+        <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="done-shell">
+    <!-- 两数字 hero：把整个故事压缩成两个数字 -->
+    <div class="done-hero">
+      <span class="done-hero-num" id="done-from">—</span>
+      <svg class="done-hero-arrow" width="40" height="16" viewBox="0 0 40 16" fill="none" aria-hidden="true">
+        <path d="M2 8h34M30 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="done-hero-num accent" id="done-to">—</span>
+    </div>
+    <h1 class="done-title" id="done-title">这些是你<em>留下的</em>。</h1>
+    <p class="done-sub" id="done-sub"></p>
+
+    <!-- 隐藏的兼容字段（旧版统计 ID 仍被 JS 触达） -->
+    <div class="done-stats-hidden">
+      <span id="stat-groups"></span>
+      <span id="stat-winners"></span>
+      <span id="stat-losers"></span>
+    </div>
+
+    <div class="done-paths">
+      <div><span class="path-label">胜出</span><code id="path-win"></code></div>
+      <div><span class="path-label">淘汰</span><code id="path-lose"></code></div>
+    </div>
+
+    <div id="unfinished-notice" class="unfinished-notice hidden">
+      <span id="unfinished-num">0</span> 组当时跳过了，要不要回去再看一眼？
+      <button id="btn-go-unfinished" class="btn btn-primary small">回去处理</button>
+    </div>
+
+    <!-- 相册目录式胜者展示：按"拍摄半天"自动分章 -->
+    <div class="winners-section">
+      <div class="winners-section-head">
+        <h2 class="winners-section-title">这次留下的</h2>
+        <span class="winners-count" id="winners-count"></span>
+      </div>
+      <div id="done-album" class="done-album"></div>
+      <div id="winners-grid" class="winners-grid"></div>
+    </div>
+
+    <div class="winners-section auto-reject-section hidden" id="auto-reject-section">
+      <div class="winners-section-head">
+        <h2 class="winners-section-title">AI 放手的照片</h2>
+        <span class="winners-count" id="auto-reject-count"></span>
+      </div>
+      <p class="auto-reject-hint">这些已归入 losers/。如有要召回的，点一下即可还原回原位置。</p>
+      <div id="auto-reject-grid" class="auto-reject-grid"></div>
+    </div>
+
+    <details class="skipped-section" id="skipped-details">
+      <summary>无法读取的照片 <span class="dim" id="skipped-count">(0)</span></summary>
+      <ul id="skipped-list" class="skip-list"></ul>
+    </details>
+  </div>
+
+  <!-- ============ 韩式大头贴 / 网感滤镜导出弹窗 ============ -->
+  <div id="wm-modal" class="wm-modal hidden">
+    <div class="wm-modal-card">
+      <header class="wm-modal-head">
+        <div>
+          <h3>韩式大头贴与网感滤镜</h3>
+          <p class="wm-modal-sub" id="wm-sub">为胜出的照片添加柔粉滤镜、相纸边框和贴纸，导出到 winners 子文件夹</p>
+        </div>
+        <button class="wm-close" id="wm-close" aria-label="关闭">×</button>
+      </header>
+
+      <div class="wm-modal-body">
+        <!-- 左侧：配置面板 -->
+        <aside class="wm-options">
+          <div class="wm-section">
+            <div class="wm-section-title">风格</div>
+            <div class="wm-template-grid" id="wm-template-grid">
+              <!-- JS 填充：风格卡片 -->
+            </div>
+          </div>
+
+          <div class="wm-section wm-exif-card" id="wm-exif-card">
+            <div class="wm-section-title">导出说明</div>
+            <ul class="wm-exif-list" id="wm-exif-list">
+              <!-- JS 填充 -->
+            </ul>
+          </div>
+        </aside>
+
+        <!-- 右侧：预览 -->
+        <section class="wm-preview-wrap">
+          <div class="wm-preview-head">
+            <span class="wm-preview-title" id="wm-preview-title">预览</span>
+            <div class="wm-preview-nav">
+              <button id="wm-prev" class="btn-ghost wm-tiny" title="上一张">‹</button>
+              <span id="wm-preview-idx" class="wm-preview-idx">— / —</span>
+              <button id="wm-next" class="btn-ghost wm-tiny" title="下一张">›</button>
+            </div>
+          </div>
+          <div class="wm-preview-frame" id="wm-preview-frame">
+            <div class="wm-preview-spinner" id="wm-preview-spinner">渲染中…</div>
+            <img id="wm-preview-img" alt="" class="wm-preview-img hidden">
+          </div>
+          <p class="wm-preview-hint" id="wm-preview-hint">
+            预览以 1400px 长边渲染，导出时使用原图尺寸并保留为独立副本
+          </p>
+        </section>
+      </div>
+
+      <!-- 底部：进度条 + 操作按钮 -->
+      <footer class="wm-modal-foot">
+        <div class="wm-progress hidden" id="wm-progress">
+          <div class="wm-progress-bar"><div class="wm-progress-fill" id="wm-progress-fill"></div></div>
+          <div class="wm-progress-text" id="wm-progress-text">准备中…</div>
+        </div>
+        <div class="wm-foot-actions">
+          <button id="wm-cancel" class="btn-ghost">关闭</button>
+          <button id="wm-stop" class="btn-ghost hidden">中止</button>
+          <button id="wm-start" class="btn btn-primary">开始导出</button>
+          <button id="wm-open-out" class="btn btn-primary hidden">打开导出文件夹</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 大图查看 -->
+  <div id="lightbox" class="lightbox hidden">
+    <button class="lb-close" id="lb-close" aria-label="关闭">×</button>
+    <button class="lb-original" id="lb-original" title="查看原图">原图</button>
+    <img id="lb-img" alt="">
+    <div class="lb-caption" id="lb-caption"></div>
+  </div>
+</section>
+
+<!-- 全局 toast -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- 首次确认弹窗 -->
+<div id="confirm" class="modal hidden">
+  <div class="modal-card">
+    <h3 id="confirm-title">确认</h3>
+    <p id="confirm-body"></p>
+    <div class="modal-actions">
+      <button id="confirm-cancel" class="btn-ghost">取消</button>
+      <button id="confirm-ok" class="btn btn-primary small">确定</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js?v=20260528k"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+Pillow>=10.0
+imagehash>=4.3
+flask>=3.0
+pillow-heif>=0.16
+numpy>=1.26,<2
+scipy>=1.11
+
+# Fast local grouping and quality checks.
+opencv-contrib-python>=4.9,<4.11
+
+# RAW preview extraction and RAW+JPG pairing.
+rawpy>=0.18
+
+# Preserve EXIF orientation when exporting styled copies.
+piexif>=1.1.3
