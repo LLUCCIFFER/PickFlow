@@ -4801,3 +4801,229 @@ body::after {
     gap: 8px;
   }
 }
+
+/* =========================================================
+   Landing layout stabilization
+   The manga redesign is intentionally kept, but this final layer
+   removes conflicting earlier flex/grid/mobile overrides.
+   ========================================================= */
+body::before,
+body::after {
+  z-index: 0;
+}
+
+#view-landing {
+  overflow-x: hidden;
+}
+
+.landing-shell {
+  width: min(100%, 1180px);
+  max-width: 100%;
+  min-height: 100dvh;
+  padding: clamp(16px, 2.8vw, 32px);
+}
+
+.site-header {
+  width: 100%;
+  padding: 10px clamp(2px, 1vw, 10px) 18px;
+}
+
+.landing-main {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  grid-template-areas:
+    "copy action"
+    "meta meta";
+  align-items: center;
+  gap: clamp(24px, 5vw, 72px);
+  width: 100%;
+  max-width: 100%;
+  padding-block: clamp(26px, 5.5vh, 58px);
+}
+
+.hero-copy {
+  grid-area: copy;
+  width: min(100%, 690px);
+  max-width: 100%;
+}
+
+.hero-action-panel {
+  grid-area: action;
+  width: 100%;
+  max-width: 420px;
+  justify-self: end;
+  gap: 14px;
+}
+
+.hero-action-panel::before {
+  inset: 18px -10px -12px 16px;
+  opacity: 0.55;
+}
+
+.manga-stage {
+  height: clamp(118px, 15vw, 166px);
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  grid-template-rows: 1fr;
+  gap: 10px;
+  margin: 0 4px 4px;
+}
+
+.panel-main {
+  grid-row: auto;
+}
+
+.manga-caption {
+  display: none;
+}
+
+.panel-line {
+  opacity: 0.65;
+}
+
+.start-form {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+.fast-only-card {
+  margin-bottom: 16px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+#folder-input {
+  min-width: 0;
+  width: 100%;
+  order: 0;
+  flex-basis: auto;
+}
+
+.btn-browse,
+#start-btn {
+  min-width: max-content;
+  justify-content: center;
+}
+
+.hero-meta {
+  grid-area: meta;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 2vw, 22px);
+  width: 100%;
+  margin-top: 0;
+}
+
+.meta-item {
+  width: 100%;
+}
+
+.landing-foot {
+  width: 100%;
+}
+
+@media (max-width: 960px) {
+  .landing-shell {
+    min-height: auto;
+  }
+
+  .landing-main {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "copy"
+      "action"
+      "meta";
+    align-items: start;
+    gap: 24px;
+    padding-block: 28px;
+  }
+
+  .hero-copy,
+  .hero-action-panel {
+    width: min(100%, 760px);
+    max-width: 100%;
+    justify-self: stretch;
+  }
+
+  .manga-stage {
+    width: 100%;
+    height: 128px;
+    grid-template-columns: minmax(0, 1fr) 110px;
+  }
+
+  .field-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  #folder-input {
+    order: 0;
+    flex-basis: auto;
+  }
+}
+
+@media (max-width: 680px) {
+  .landing-shell {
+    padding-inline: 14px;
+  }
+
+  .site-header {
+    padding-bottom: 12px;
+  }
+
+  .hero-title {
+    font-size: clamp(32px, 11vw, 50px);
+    line-height: 1.1;
+  }
+
+  .hero-sub {
+    line-height: 1.7;
+  }
+
+  .manga-stage {
+    height: 112px;
+    grid-template-columns: 1fr;
+  }
+
+  .panel-side {
+    display: none;
+  }
+
+  .field-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .btn-browse,
+  #start-btn {
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  #folder-input {
+    order: 3;
+    flex: 1 1 100%;
+    min-height: 42px;
+  }
+
+  .hero-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .btn-browse,
+  #start-btn {
+    flex-basis: 100%;
+  }
+
+  #folder-input {
+    order: 2;
+  }
+}
