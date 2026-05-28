@@ -5027,3 +5027,227 @@ body::after {
     order: 2;
   }
 }
+
+/* =========================================================
+   Visible manga art pass
+   ========================================================= */
+html,
+body {
+  background:
+    linear-gradient(180deg, #ffe8f3 0%, #fff4fb 38%, #edf8ff 100%) !important;
+}
+
+#view-landing {
+  background:
+    linear-gradient(115deg, rgba(255, 201, 223, 0.58) 0 28%, transparent 28% 100%),
+    linear-gradient(245deg, rgba(191, 232, 255, 0.58) 0 24%, transparent 24% 100%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.42) 0 2px, transparent 2px 18px),
+    #ffedf5;
+}
+
+#view-landing::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(circle, rgba(191, 63, 120, 0.20) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle, rgba(63, 132, 191, 0.14) 0 1px, transparent 1.8px);
+  background-position: 0 0, 8px 8px;
+  background-size: 18px 18px, 18px 18px;
+  mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.78) 38%, transparent 82%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.78) 38%, transparent 82%);
+}
+
+.landing-shell {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-shell::before,
+.landing-shell::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  border: 2px solid rgba(49, 40, 50, 0.10);
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.44) 0 8px, rgba(255, 255, 255, 0.12) 8px 16px);
+}
+
+.landing-shell::before {
+  width: min(360px, 42vw);
+  height: min(260px, 32vw);
+  right: -42px;
+  top: 100px;
+  transform: rotate(7deg);
+}
+
+.landing-shell::after {
+  width: min(300px, 38vw);
+  height: min(190px, 25vw);
+  left: -70px;
+  bottom: 118px;
+  transform: rotate(-10deg);
+}
+
+.hero-copy,
+.hero-action-panel,
+.hero-meta,
+.site-header,
+.landing-foot {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-title {
+  color: #231b24;
+  text-shadow:
+    2px 2px 0 #ffffff,
+    5px 5px 0 rgba(191, 63, 120, 0.22),
+    9px 9px 0 rgba(105, 176, 226, 0.14);
+}
+
+.hero-sub {
+  color: #5f4b5a;
+  background: rgba(255, 255, 255, 0.46);
+  border-left: 4px solid rgba(191, 63, 120, 0.42);
+  padding: 14px 16px;
+  box-shadow: 4px 4px 0 rgba(49, 40, 50, 0.06);
+}
+
+.manga-stage {
+  height: clamp(150px, 18vw, 210px);
+}
+
+.panel-main {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 211, 231, 0.90)),
+    radial-gradient(circle, rgba(191, 63, 120, 0.20) 0 1.2px, transparent 1.8px);
+  background-size: auto, 12px 12px;
+}
+
+.panel-side {
+  background:
+    linear-gradient(135deg, rgba(216, 199, 255, 0.98), rgba(191, 232, 255, 0.96)),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.48) 0 8px, transparent 8px 16px);
+}
+
+.beauty-showcase {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.beauty-card {
+  position: relative;
+  min-height: 116px;
+  padding: 13px 12px;
+  border: 2px solid var(--manga-ink);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 5px;
+  box-shadow: 4px 4px 0 rgba(49, 40, 50, 0.14);
+  color: var(--manga-ink);
+}
+
+.beauty-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.78) 0 1.2px, transparent 1.8px);
+  background-size: 9px 9px;
+  opacity: 0.72;
+}
+
+.beauty-card::after {
+  content: "✦";
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  font-size: 24px;
+  color: rgba(49, 40, 50, 0.28);
+}
+
+.beauty-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.beauty-card strong {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.beauty-card span:last-child {
+  font-size: 11px;
+  color: rgba(49, 40, 50, 0.72);
+  line-height: 1.4;
+}
+
+.beauty-tag {
+  align-self: flex-start;
+  padding: 3px 7px;
+  border: 1px solid rgba(49, 40, 50, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+.beauty-card-pink {
+  background: linear-gradient(135deg, #ffd3e7, #fff4fa);
+}
+
+.beauty-card-blue {
+  background: linear-gradient(135deg, #d7ecff, #fff6fb);
+}
+
+.beauty-card-cream {
+  background: linear-gradient(135deg, #fff0bd, #ffe7f3);
+}
+
+.start-form {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.97), rgba(255, 230, 242, 0.92));
+  border-color: rgba(49, 40, 50, 0.24);
+}
+
+.fast-only-card {
+  background:
+    linear-gradient(135deg, rgba(255, 214, 232, 0.96), rgba(224, 245, 255, 0.92));
+}
+
+.hero-meta .meta-item {
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(255, 231, 242, 0.88));
+}
+
+@media (max-width: 960px) {
+  .beauty-showcase {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .beauty-showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .beauty-card {
+    min-height: 88px;
+  }
+
+  #view-landing::before {
+    mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.72) 52%, transparent 100%);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.72) 52%, transparent 100%);
+  }
+}
