@@ -3,6 +3,7 @@
 PickFlow 是一个本地智能选片助手。当前版本只保留 **极速模式**：照片分析、初筛、分组和选片都在本机完成，不上传照片，也不需要外部账号。
 
 拾万千光影，定格那一帧。
+<img width="1910" height="915" alt="image" src="https://github.com/user-attachments/assets/24cd5e09-d0ac-4114-b3c7-92699d0f7b5b" />
 
 ## 功能
 
@@ -54,6 +55,12 @@ http://localhost:5057
 5. 完成后打开 `winners/` 查看最终照片。
 6. 点击“相机参数水印”，选择专业水印样式，预览后批量导出带机型、镜头和拍摄参数的副本。
 7. 点击“贴纸 / 滤镜”，选择韩式贴纸或复古、水彩、素描、漫画、黑白等风格，预览后批量导出网感成片。
+
+<img width="525" height="806" alt="image" src="https://github.com/user-attachments/assets/eedd83f3-7d12-4e24-a9ac-f31af0f96f15" />
+<img width="1551" height="899" alt="image" src="https://github.com/user-attachments/assets/2e479bd6-4b8f-4642-867a-103064c050ce" />
+<img width="1910" height="915" alt="image" src="https://github.com/user-attachments/assets/0fbe01dd-968e-448b-a47a-32275cf5f2ab" />
+<img width="1397" height="838" alt="image" src="https://github.com/user-attachments/assets/161b5d73-0916-4127-ab6a-2c5eebfad408" />
+
 
 ## 快捷键
 
